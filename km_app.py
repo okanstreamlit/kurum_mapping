@@ -90,7 +90,7 @@ def create_input_df(original_input):
             .str.replace("HASTANESI", "HOSPITAL") 
             .str.replace("HASTANE", "HOSPITAL") 
             .str.replace("LIV HASTANESI", "LIV HOSPITAL") 
-            .str.replace("DR.", "DOKTOR ") #
+            .str.replace("DR.", "DOKTOR ") 
             .str.replace("HİZ.TİC.A.Ş", "") 
             .str.replace("HIZ.TIC", "") 
             .str.replace(" HIZ.", "")
@@ -103,16 +103,16 @@ def create_input_df(original_input):
             .str.replace(" OZEL ","")
             .str.replace(" ECZANE ", " ECZANESI ")
             .str.replace("ECZANE ", "ECZANESI ")
-            .str.replace("ECZ.", "ECZANESI ") #
-            .str.replace(" ECZ.", " ECZANESI") #
-            .str.replace(" ECZ. ", " ECZANESI ") #
-            .str.replace(" HAS.", " HOSPITAL") #
-            .str.replace(" HAS", " HOSPITAL ") #
+            .str.replace("ECZ.", "ECZANESI ") 
+            .str.replace(" ECZ.", " ECZANESI") 
+            .str.replace(" ECZ. ", " ECZANESI ") 
+            .str.replace(" HAS.", " HOSPITAL") 
+            .str.replace(" HAS", " HOSPITAL ") 
             .str.replace(" HAST.", " HOSPITAL")
             .str.replace(" HAST. ", " HOSPITAL ")
             .str.replace("HAST. ", "HOSPITAL ")
             .str.replace(" HAS(", " HOSPITAL(")
-            .str.replace(" HAS ", " HOSPITAL ") # riskli
+            .str.replace(" HAS ", " HOSPITAL ")  
             .str.replace(" UNIVERSITE "," UNIVERSITESI ")
             .str.replace(" UNI ", " UNIVERSITESI ")
             .str.replace(" UNI. ", " UNIVERSITESI ")
@@ -120,14 +120,14 @@ def create_input_df(original_input):
             .str.replace(" UNV. ", " UNIVERSITESI ")
             .str.replace(" UNIV ", " UNIVERSITESI ")
             .str.replace(" UNIV. ", " UNIVERSITESI ")
-            .str.replace("UNV.", "UNIVERSITESI ") #
-            .str.replace("UNIV.", "UNIVERSITESI ") #
+            .str.replace("UNV.", "UNIVERSITESI ") 
+            .str.replace("UNIV.", "UNIVERSITESI ") 
             .str.replace(" FTR ", " FIZIK TEDAVI VE REHABILITASYON ")   
-            .str.replace("TC.", "") #   
-            .str.replace("IST.", "ISTANBUL ") #   
-            .str.replace("EGT VE ART.", "EGITIM VE ARASTIRMA ") #   
-            .str.replace("TIP FAK.", " ") #   
-            .str.replace("MRK.", "MERKEZI ") #   
+            .str.replace("TC.", "")    
+            .str.replace("IST.", "ISTANBUL ")    
+            .str.replace("EGT VE ART.", "EGITIM VE ARASTIRMA ")    
+            .str.replace("TIP FAK.", " ")    
+            .str.replace("MRK.", "MERKEZI ")    
             .str.replace("  ", " ")
         )
 )
@@ -177,9 +177,9 @@ if input_file is not None:
             [[
                 df.columns[0],
                 'kurum_adi',
-                'MAPLENDIGI_KURUM_ADI',
+                #'MAPLENDIGI_KURUM_ADI',
                 'MAPLENDIGI_KURUM_TIPI',
-                'YAKINLIK_SKORU',
+                #'YAKINLIK_SKORU',
                 'MANUEL_KONTROL'
             ]]
                 
