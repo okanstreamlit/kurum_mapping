@@ -176,7 +176,7 @@ if input_file is not None:
             .assign(MANUEL_KONTROL = lambda x: np.where(x['YAKINLIK_SKORU'] <80, 'EVET', 'HAYIR'))
             [[
                 df.columns[0],
-                'kurum_adi',
+                #'kurum_adi',
                 #'MAPLENDIGI_KURUM_ADI',
                 'MAPLENDIGI_KURUM_TIPI',
                 #'YAKINLIK_SKORU',
