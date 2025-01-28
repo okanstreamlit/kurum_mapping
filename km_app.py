@@ -18,7 +18,7 @@ st.markdown("""
         Maplemenin yapılabılmesi için yüklenen dosya aşağıdaki gibi olmalıdır:
         <ul>
             <li>Dosya CSV UTF-8 formatında olmalıdır.</li>
-            <li>Dosya sadece bir tane sütun (A1 den başlayarak).</li>
+            <li>Dosya sadece bir tane sütundan oluşmalıdır (A1 den başlayarak).</li>
             <li>Bu sütun kurum isimlerini içermelidir (ilk satır sütun başlığı olmalıdır).</li>
         </ul>
     </div>
