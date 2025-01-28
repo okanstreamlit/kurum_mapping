@@ -6,7 +6,7 @@ from sentence_transformers import SentenceTransformer, util
 
 st.set_page_config(layout="wide")
 
-st.image('Bupa Logo.png', width = 200)
+st.image('Bupa Logo.png', width = 100)
 
 st.title('Kurum ve Kurum Tipi Eşlemesi')
 
