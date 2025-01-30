@@ -14,15 +14,29 @@ st.write('\n')
 st.write('\n')
 
 st.markdown("""
-    <div style="font-size: 18px; font-weight: bold;">
-        Maplemenin yapılabılmesi için yüklenen dosya aşağıdaki gibi olmalıdır:
+    <div style="font-size: 20px; font-weight: bold;">
+        Maplemenin yapılabilmesi için yüklenen dosya aşağıdaki gibi olmalıdır:
+    </div>
+    <div style="font-size: 18px;">
         <ul>
             <li>Dosya CSV UTF-8 formatında olmalıdır.</li>
-            <li>Dosya sadece bir tane sütundan oluşmalıdır (A1 den başlayarak).</li>
-            <li>Bu sütun kurum isimlerini içermelidir (ilk satır sütun başlığı olmalıdır).</li>
+            <li>Dosyanın ilk sütununda kurum isimleri olmalıdır ve A1'den başlamalıdır.</li>
+            <li>Dosyanın diğer sütunlarında toplanması istenilen değerler olmalıdır.</li>
+            <li>Dosyada toplam tutar gösteren bir satır <b>olmamalıdır</b>.</li>
+            <li>Sayı gösteren sütunlarda ondalık nokta (.) ile gösterilmelidir. Örnek olarak: 1200.25 ✅ | 1200,25 ❌</li>
+            <li>1000'den büyük sayılarda ayraç olarak virgül kullanılabilir. Örnek olarak: 1,200.25 ✅ | 1200,25 ✅</li>
         </ul>
     </div>
 """, unsafe_allow_html=True)
+
+st.write('\n')
+st.markdown("""
+    <div style="font-size: 20px; font-weight: bold;">
+        Doğru bir CSV dosyası aşağıdaki gibi olmalıdır:
+    </div>
+""", unsafe_allow_html=True)
+st.write('\n')
+st.image('dogru csv.png')
 
 st.write('\n')
 
@@ -33,6 +47,69 @@ def load_references():
 @st.cache_resource
 def load_model():
     return SentenceTransformer("all-MiniLM-L6-v2")
+
+def button_clicked_to_show():
+    st.session_state['df_map_status'] += 1
+
+def button_clicked_to_hide():
+    st.session_state['df_map_status'] += 1
+
+def clean_text(text):
+    replacements = {
+        '(eski Adı Biruni Üniv.sağ.eğitimi Uygulama Ve Araş. Merk)': '',
+        "İ": "I", 
+        "Ö": "O", 
+        "Ü": "U", 
+        "Ç": "C", 
+        "Ş": "S", 
+        "Ğ": "G",
+        "?": " ", 
+        "!": " ", 
+        "-": " ", 
+        "_": " ", 
+        "  ": " ",
+        " N.HAST": " FLORENCE NIGHTINGALE HASTANESI",
+        "(ACIBADEM POLIKLINIKLERI A.S.)": "",
+        "HASTANESI": "HOSPITAL", 
+        "HASTANE": "HOSPITAL",
+        "LIV HASTANESI": "LIV HOSPITAL", 
+        "DR.": "DOKTOR ",
+        "HİZ.TİC.A.Ş": "", 
+        "HIZ.TIC": "", 
+        " HIZ.": "", 
+        " TIC.": "", 
+        " AS.": "",
+        " SAG ": " SAGLIK ", 
+        " SAG.": " SAGLIK ",
+        "ORTOPEDI": "ORT.", 
+        "OZEL ": "", 
+        " OZEL ": "",
+        " ECZANE ": " ECZANESI ", 
+        "ECZANE ": "ECZANESI ", 
+        "ECZ.": "ECZANESI ",
+        " HAS.": " HOSPITAL", 
+        " HAS": " HOSPITAL ", 
+        " HAST.": " HOSPITAL",
+        " UNIVERSITE ": " UNIVERSITESI ", 
+        " UNI ": " UNIVERSITESI ",
+        " UNI. ": " UNIVERSITESI ", 
+        " UNV ": " UNIVERSITESI ",
+        " UNV. ": " UNIVERSITESI ", 
+        " UNIV ": " UNIVERSITESI ",
+        " UNIV. ": " UNIVERSITESI ", 
+        " FTR ": " FIZIK TEDAVI VE REHABILITASYON ",
+        "TC.": "", 
+        "IST.": "ISTANBUL ", 
+        "EGT VE ART.": "EGITIM VE ARASTIRMA ",
+        "TIP FAK.": " ", 
+        "MRK.": "MERKEZI ", 
+        "  ": " "
+    }
+    
+    for key, value in replacements.items():
+        text = text.replace(key, value)
+    
+    return text.strip()
 
 def matched_function(row):
     hc_group = hc_groups[row['kurum_adi']]
@@ -67,122 +144,110 @@ def unmatched_function(row, reference_dict, encoded_references):
 
 def create_input_df(original_input):
 
-    df = (
-        original_input
-        .assign(
-            kurum_adi=lambda x: x[original_input.columns[0]]
-                        .str.strip()
-            .str.upper()
-            .str.replace('(eski Adı Biruni Üniv.sağ.eğitimi Uygulama Ve Araş. Merk)','')
-            .str.replace("İ", "I")
-            .str.replace("Ö", "O")
-            .str.replace("Ü", "U")
-            .str.replace("Ç", "C")
-            .str.replace("Ş", "S")
-            .str.replace("Ğ", "G")
-            .str.replace("?", " ")
-            .str.replace("!", " ")
-            .str.replace("-", " ")
-            .str.replace("_", " ")
-            .str.replace("  ", " ")
-            .str.replace(" N.HAST", " FLORENCE NIGHTINGALE HASTANESI")
-            .str.replace("(ACIBADEM POLIKLINIKLERI A.S.)", "") 
-            .str.replace("HASTANESI", "HOSPITAL") 
-            .str.replace("HASTANE", "HOSPITAL") 
-            .str.replace("LIV HASTANESI", "LIV HOSPITAL") 
-            .str.replace("DR.", "DOKTOR ") 
-            .str.replace("HİZ.TİC.A.Ş", "") 
-            .str.replace("HIZ.TIC", "") 
-            .str.replace(" HIZ.", "")
-            .str.replace(" TIC.", "")
-            .str.replace(" AS.", "")
-            .str.replace(" SAG ", " SAGLIK ")
-            .str.replace(" SAG.", " SAGLIK ")
-            .str.replace("ORTOPEDI", "ORT.")
-            .str.replace("OZEL ","")
-            .str.replace(" OZEL ","")
-            .str.replace(" ECZANE ", " ECZANESI ")
-            .str.replace("ECZANE ", "ECZANESI ")
-            .str.replace("ECZ.", "ECZANESI ") 
-            .str.replace(" ECZ.", " ECZANESI") 
-            .str.replace(" ECZ. ", " ECZANESI ") 
-            .str.replace(" HAS.", " HOSPITAL") 
-            .str.replace(" HAS", " HOSPITAL ") 
-            .str.replace(" HAST.", " HOSPITAL")
-            .str.replace(" HAST. ", " HOSPITAL ")
-            .str.replace("HAST. ", "HOSPITAL ")
-            .str.replace(" HAS(", " HOSPITAL(")
-            .str.replace(" HAS ", " HOSPITAL ")  
-            .str.replace(" UNIVERSITE "," UNIVERSITESI ")
-            .str.replace(" UNI ", " UNIVERSITESI ")
-            .str.replace(" UNI. ", " UNIVERSITESI ")
-            .str.replace(" UNV ", " UNIVERSITESI ")
-            .str.replace(" UNV. ", " UNIVERSITESI ")
-            .str.replace(" UNIV ", " UNIVERSITESI ")
-            .str.replace(" UNIV. ", " UNIVERSITESI ")
-            .str.replace("UNV.", "UNIVERSITESI ") 
-            .str.replace("UNIV.", "UNIVERSITESI ") 
-            .str.replace(" FTR ", " FIZIK TEDAVI VE REHABILITASYON ")   
-            .str.replace("TC.", "")    
-            .str.replace("IST.", "ISTANBUL ")    
-            .str.replace("EGT VE ART.", "EGITIM VE ARASTIRMA ")    
-            .str.replace("TIP FAK.", " ")    
-            .str.replace("MRK.", "MERKEZI ")    
-            .str.replace("  ", " ")
-        )
-)
-    return df
+    df = original_input.copy()
+
+    numerical_columns = df.columns[1:].tolist()
+    for col in numerical_columns:
+        if not pd.api.types.is_numeric_dtype(df[col]):
+            df[col] = pd.to_numeric(df[col].astype(str).str.replace(',', ''), errors='coerce')
+
+    if df.columns[0] == 'kurum_adi':
+        df = df.rename(columns = {df.columns[0]: 'kurum_adi_'})
+    
+    df['kurum_adi'] = df[df.columns[0]].str.strip().str.upper().apply(clean_text) 
+            
+    return numerical_columns, df
 
 st.markdown("""
-    <label style="font-size: 18px; font-weight: bold;">
+    <label style="font-size: 22px; font-weight: bold;">
         Kurum Adlarını Buraya Yükleyebilirsiniz:
     </label>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 input_file = st.file_uploader('', type=['csv'])
+
+if input_file is None:
+
+    st.session_state['mapping_done'] = False
+    st.session_state['df_map'] = None
+    st.session_state['df_output'] = None
+    st.session_state['df'] = None
+    st.session_state['df_map_status'] = 1
 
 if input_file is not None:
 
     original_input = pd.read_csv(input_file)
 
-    st.write('Yüklemiş Olduğunuz Dosya')
-    st.write('\n')
-    st.dataframe(original_input)
+    with st.expander("Yüklemiş Olduğunuz Dosya", expanded=False):
+        st.dataframe(original_input)
 
-    with st.spinner("Mapleme Yapılıyor"):
+    if not st.session_state['mapping_done']:
+        
+        with st.spinner("Mapleme Yapılıyor"):    
 
-        df = create_input_df(original_input)
-        model = load_model()
-        hc_groups, reference_embeddings, reference_dict, encoded_references = load_references()
-        #hc_groups, reference_embeddings = load_references()
+            numerical_columns, df = create_input_df(original_input)
+            model = load_model()
+            hc_groups, reference_embeddings, reference_dict, encoded_references = load_references()
+            reference_list = list(hc_groups.keys())
 
-        reference_list = list(hc_groups.keys())
+            df[["HEALTHCENTERDESC", "similarity_score", "KURUM GRUBU"]] = df.apply(
+                    lambda row: pd.Series(
+                        matched_function(row) if row["kurum_adi"] in reference_list else unmatched_function(row, reference_dict, encoded_references)
+                    ),
+                    axis=1
+                )
+            
+            df_output = (
+                df.groupby('KURUM GRUBU', as_index=False)[numerical_columns].sum()
+                .rename(columns = {col: f'TOTAL {col}' for col in numerical_columns})
+                )
+            
+            st.success("Mapleme Tamamlandı")
+            st.dataframe(df_output)
 
-        df[["HEALTHCENTERDESC", "similarity_score", "HC_GROUP"]] = df.apply(
-                lambda row: pd.Series(
-                    matched_function(row) if row["kurum_adi"] in reference_list else unmatched_function(row, reference_dict, encoded_references)
-                ),
-                axis=1
+            st.session_state['df'] = df
+            st.session_state['df_output'] = df_output
+            st.session_state['mapping_done'] = True
+
+            show_mapping_button = st.button('Kurumların Maplemesini Göster', key = 'show_button_1', on_click = button_clicked_to_show)
+
+            df_map = (
+                df[[
+                    df.columns[0],
+                    'kurum_adi',
+                    'HEALTHCENTERDESC',
+                    'KURUM GRUBU',
+                    'similarity_score',
+                ]]
+                .rename(columns = {
+                    'kurum_adi':f'{df.columns[0]} DUZENLENMIS',
+                    'HEALTHCENTERDESC':'MAPLENDIGI KURUM ADI',
+                    'KURUM GRUBU': 'MAPLENDIGI KURUM GRUBU ',
+                    'similarity_score':'YAKINLIK SKORU',
+                    }
+                )
+                .assign(MANUEL_KONTROL = lambda x: np.where(x['YAKINLIK SKORU'] <80, 'EVET', 'HAYIR'))
             )
-        
-    st.success("Mapleme Tamamlandı")
-        
-    final = (
-            df
-            .rename(columns = {
-                'HEALTHCENTERDESC':'MAPLENDIGI_KURUM_ADI',
-                'HC_GROUP':'MAPLENDIGI_KURUM_TIPI',
-                'similarity_score': 'YAKINLIK_SKORU'})
-            .assign(MANUEL_KONTROL = lambda x: np.where(x['YAKINLIK_SKORU'] <80, 'EVET', 'HAYIR'))
-            [[
-                df.columns[0],
-                #'kurum_adi',
-                #'MAPLENDIGI_KURUM_ADI',
-                'MAPLENDIGI_KURUM_TIPI',
-                #'YAKINLIK_SKORU',
-                'MANUEL_KONTROL'
-            ]]
-                
-    )
 
-    st.dataframe(final)
+            st.session_state['df_map'] = df_map
+
+    elif st.session_state['df_map_status'] % 2 == 0:
+
+        df_output = st.session_state['df_output']
+        df = st.session_state['df']
+        df_map = st.session_state['df_map']
+
+        st.success("Mapleme Tamamlandı")
+        st.dataframe(df_output)
+        st.write('Maplenmiş Kurum Tablosu')
+        st.dataframe(df_map)
+
+        show_mapping_button = st.button('Kurumların Maplemesini Gizle', key = 'hide_button', on_click = button_clicked_to_hide)
+
+    else:
+
+        st.success("Mapleme Tamamlandı")
+        st.dataframe(st.session_state['df_output'])
+        df = st.session_state['df']
+
+        hide_mapping_button = st.button('Kurumların Maplemesini Göster', key = 'show_button_2', on_click = button_clicked_to_show)
